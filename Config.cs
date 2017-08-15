@@ -9,10 +9,14 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 	public class Config
 	{
 		public string AvsimUsername { get; set; }
+
 		public string AvsimPassword { get; set; }
-		public bool SavePassword { get; set; }
-		public string Simulator { get; set; }
-		public string DownloadFolder { get; set; }
+
+        public bool SavePassword { get; set; }
+
+        public string Simulator { get; set; }
+
+        public string DownloadFolder { get; set; }
 
 		public Config()
 		{

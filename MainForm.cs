@@ -5,21 +5,31 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+
+// Import HTML handling packages.
 using HtmlAgilityPack;
+
+// Import Material Skins.
+using MaterialSkin;
+using MaterialSkin.Controls;
 
 namespace Metacraft.FlightSimulation.WoaiDownloader
 {
-	public partial class MainForm : Form
+    public partial class MainForm : MaterialForm
 	{
-		private const string LOCAL_PACKAGE_LIST_FILE = "packages.html";
-		private const string WORLD_OF_AI_PACKAGE_LIST_URL = "http://www.world-of-ai.com/allpackages.php";
-		private const string AVSIM_LOGIN_URL = "https://library.avsim.net/dologin.php";
-		private const string AVSIM_DOWNLOAD_URL_FORMAT = "https://library.avsim.net/sendfile.php?Location=AVSIM&Proto=ftp&DLID={0}";
+        private const string FORM_TITLE = "World Of AI Package Downloader";
 
-		private List<PackageGroup> mPackageGroups = new List<PackageGroup>() {
+		private const string WORLD_OF_AI_PACKAGE_LIST_URL = "http://www.world-of-ai.com/allpackages.php";
+        private const string WORLD_OF_AI_PACKAGE_INSTALLER_URL = "http://www.world-of-ai.com/installer.php";
+
+        private const string AVSIM_LOGIN_URL = "https://library.avsim.net/dologin.php";
+        private const string AVSIM_REGISTER_URL = "https://library.avsim.net/register.php";
+        private const string AVSIM_DOWNLOAD_URL_FORMAT = "https://library.avsim.net/sendfile.php?Location=AVSIM&Proto=ftp&DLID={0}";
+        
+        private const string LOCAL_PACKAGE_LIST_FILE = "packages.html";
+        private List<PackageGroup> mPackageGroups = new List<PackageGroup>() {
 			new PackageGroup("airlines", "Passenger Airlines"),
 			new PackageGroup("cargo", "Cargo Airlines"),
 			new PackageGroup("ga", "General Aviation"),
@@ -29,13 +39,27 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 		private Dictionary<string, Dictionary<string, List<PackageInfo>>> mPackages;
 		private WebClient mPackageListClient = new WebClient();
 		private CookieAwareWebClient mPackageDownloadClient = new CookieAwareWebClient();
-		private bool mDownloadInProgress;
-		private List<PackageInfo> mSelectedPackages;
-		private int mCurrentPackageIndex;
+        private List<PackageInfo> mSelectedPackages;
+        private int mCurrentPackageIndex;
 
-		public MainForm()
+		private bool mDownloadInProgress;
+        private bool skipPreviouslySavedFiles = false;
+
+        public MainForm()
 		{
 			InitializeComponent();
+
+            // Create a material theme manager and add the form  to manage (this).
+            MaterialSkinManager materialSkinManager = MaterialSkinManager.Instance;
+            materialSkinManager.AddFormToManage(this);
+            materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
+
+            // Configure colour schema.
+            materialSkinManager.ColorScheme = new ColorScheme(
+                Primary.Blue400, Primary.Blue500,
+                Primary.Blue500, Accent.LightBlue200,
+                TextShade.WHITE
+            );
 		}
 
 		private void MainForm_Load(object sender, EventArgs e)
@@ -45,8 +69,12 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			mPackageDownloadClient.UploadValuesCompleted += mPackageDownloadClient_UploadValuesCompleted;
 			mPackageDownloadClient.DownloadStringCompleted += mPackageDownloadClient_DownloadStringCompleted;
 			mPackageDownloadClient.DownloadDataCompleted += mPackageDownloadClient_DownloadDataCompleted;
-			ddlSim.Items.Add("FS9");
+
+            // Add the download selection and set to FSX.
+            ddlSim.Items.Add("FS9");
 			ddlSim.Items.Add("FSX");
+            ddlSim.SelectedIndex = 1;
+
 			LoadConfig();
 			SetControlStates();
 		}
@@ -67,18 +95,51 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 				progCurrentFile.Style = ProgressBarStyle.Marquee;
 				btnDownloadPackages.Text = "Cancel Download";
 				btnDownloadPackages.Enabled = true;
-				grpConfiguration.Enabled = false;
-				treePackages.Enabled = false;
+
+                // Step invisible.
+                firstStep.Visible = false;
+                secondStep.Visible = false;
+                thirdStep.Visible = false;
+                fourthStep.Visible = false;
+
+                // Configuration group
+                txtAvsimUsername.Enabled = false;
+                txtAvsimPassword.Enabled = false;
+                chkSavePassword.Enabled = false;
+                registerAvsim.Enabled = false;
+                chkSkipPreviousSaved.Enabled = false;
+                ddlSim.Enabled = false;
+                txtDownloadFolder.Enabled = false;
+                btnBrowseDownloadFolder.Enabled = false;
+
+                treePackages.Enabled = false;
 				btnRefreshPackageList.Enabled = false;
-			} else {
+
+            } else {
 				progCurrentFile.Style = ProgressBarStyle.Continuous;
 				btnDownloadPackages.Text = "Download Selected Packages";
 				btnDownloadPackages.Enabled =
 					!string.IsNullOrEmpty(txtAvsimUsername.Text)
 					&& !string.IsNullOrEmpty(txtAvsimPassword.Text)
 					&& (GetCheckedNodes(treePackages.Nodes).Count > 0);
-				grpConfiguration.Enabled = true;
-				treePackages.Enabled = true;
+
+                // Step visible.
+                firstStep.Visible = true;
+                secondStep.Visible = true;
+                thirdStep.Visible = true;
+                fourthStep.Visible = true;
+
+                // Configuration group
+                txtAvsimUsername.Enabled = true;
+                txtAvsimPassword.Enabled = true;
+                chkSavePassword.Enabled = true;
+                registerAvsim.Enabled = true;
+                chkSkipPreviousSaved.Enabled = true;
+                ddlSim.Enabled = true;
+                txtDownloadFolder.Enabled = true;
+                btnBrowseDownloadFolder.Enabled = true;
+
+                treePackages.Enabled = true;
 				btnRefreshPackageList.Enabled = true;
 			}
 		}
@@ -89,13 +150,17 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			FetchPackageList();
 		}
 
-		private void btnRefreshPackageList_Click(object sender, EventArgs e)
+		private void btnRefreshPackageList_Click_1(object sender, EventArgs e)
 		{
 			FetchPackageList();
-		}
+            selectedPackagesCount.Text = "0";
+        }
 
 		private void FetchPackageList()
 		{
+            // Clear any previous messages before fetching the latest package list.
+            ClearMessages();
+
 			AddMessage("Fetching package list ...");
 			if (File.Exists(LOCAL_PACKAGE_LIST_FILE)) {
 				try {
@@ -107,7 +172,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 					}
 				}
 				catch (Exception ex) {
-					MessageBox.Show(this, string.Format("Error loading local package file: {0}", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(string.Format("Error loading local package file: {0}", ex.Message), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 			} else {
@@ -118,7 +183,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 					mPackageListClient.DownloadStringAsync(new Uri(WORLD_OF_AI_PACKAGE_LIST_URL));
 				}
 				catch (Exception ex) {
-					MessageBox.Show(this, string.Format("Error loading package list from WoAI web site: {0}", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(string.Format("Error loading package list from WoAI web site: {0}", ex.Message), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 			}
@@ -135,7 +200,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 				return;
 			}
 			if (e.Error != null) {
-				MessageBox.Show(this, string.Format("Error loading package list from WoAI web site: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(string.Format("Error loading package list from WoAI web site: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				AddErrorMessage(" error." + Environment.NewLine);
 				return;
 			}
@@ -187,8 +252,10 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 					mPackages[packageGroup.Name][pi.Country].Add(pi);
 				}
 			}
-			AddMessage(" done." + Environment.NewLine);
-		}
+
+            AddMessage(" done." + Environment.NewLine);
+            // AddMessage(new string('_', 97) + Environment.NewLine, Color.Green);
+        }
 
 		private void PopulateTree()
 		{
@@ -219,7 +286,10 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			CheckParentsWhereAllChildrenChecked(treePackages.Nodes);
 			treePackages.AfterCheck += new TreeViewEventHandler(treePackages_AfterCheck);
 			SetControlStates();
-		}
+
+
+            selectedPackagesCount.Text = GetCheckedNodes(treePackages.Nodes).Count.ToString();
+        }
 
 		private List<TreeNode> GetCheckedNodes(TreeNodeCollection nodes)
 		{
@@ -254,7 +324,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			}
 		}
 
-		private void btnBrowseDownloadFolder_Click(object sender, EventArgs e)
+		private void btnBrowseDownloadFolder_Click_1(object sender, EventArgs e)
 		{
 			FolderBrowserDialog dlg = new FolderBrowserDialog();
 			dlg.Description = "Specify the folder where the package files will be saved:";
@@ -282,7 +352,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			SetControlStates();
 		}
 
-		private void btnDownloadPackages_Click(object sender, EventArgs e)
+		private void btnDownloadPackages_Click_1(object sender, EventArgs e)
 		{
 			if (mDownloadInProgress) {
 				StopDownload();
@@ -306,17 +376,37 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 
 		private void StartDownload()
 		{
-			if (!hasWriteAccessToFolder(txtDownloadFolder.Text)) {
-				MessageBox.Show(this, "You do not appear to have write access to the specified download folder.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); 
-				return;
-			}
-			mDownloadInProgress = true;
-			SetControlStates();
-			mSelectedPackages = GetCheckedNodes(treePackages.Nodes).Where(x => x.Tag != null).Select(x => x.Tag as PackageInfo).ToList();
-			mCurrentPackageIndex = -1;
-			progOverall.Value = 0;
-			progOverall.Maximum = mSelectedPackages.Count;
-			DoLogin();
+            // Make sure the folder we are going to download to exists.
+            if (!Directory.Exists(txtDownloadFolder.Text))
+            {
+                DialogResult dialogResult = MessageBox.Show("The download folder you have selected does not exist, would you like to create it now?", FORM_TITLE, MessageBoxButtons.YesNo);
+
+                if (dialogResult == DialogResult.Yes)
+                {
+                    Directory.CreateDirectory(txtDownloadFolder.Text);
+                    AddMessage("Created new download folder: " + txtDownloadFolder.Text + Environment.NewLine);
+                }
+                else if (dialogResult == DialogResult.No)
+                {
+                    MessageBox.Show("Please select another download folder before starting to download the selected packages.", FORM_TITLE);
+                    return;
+                }
+            }
+
+            // Check if the folder we are going to save the downloaded packages to has write access.
+            if (!hasWriteAccessToFolder(txtDownloadFolder.Text))
+            {
+                MessageBox.Show("You do not appear to have write access to the specified download folder.", FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            mDownloadInProgress = true;
+            SetControlStates();
+            mSelectedPackages = GetCheckedNodes(treePackages.Nodes).Where(x => x.Tag != null).Select(x => x.Tag as PackageInfo).ToList();
+            mCurrentPackageIndex = -1;
+            progOverall.Value = 0;
+            progOverall.Maximum = mSelectedPackages.Count;
+            DoLogin();
 		}
 
 		private void StopDownload()
@@ -324,6 +414,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			if (mPackageDownloadClient.IsBusy) {
 				mPackageDownloadClient.CancelAsync();
 			}
+
 			mDownloadInProgress = false;
 			SetControlStates();
 			progOverall.Value = 0;
@@ -347,9 +438,10 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			if (e.Error != null) {
 				AddErrorMessage(" error." + Environment.NewLine);
 				StopDownload();
-				MessageBox.Show(this, string.Format("Error logging into AVSIM: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(string.Format("Error logging into AVSIM: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
+
 			CookieCollection cookies = mPackageDownloadClient.CookieContainer.GetCookies(new Uri(AVSIM_LOGIN_URL));
 			bool gotAuthCookie = false;
 			foreach (Cookie cookie in cookies) {
@@ -358,14 +450,16 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 					gotAuthCookie = true;
 				}
 			}
+
 			mPackageDownloadClient.CookieContainer.Add(cookies);
 			if (!gotAuthCookie) {
 				AddErrorMessage(" error." + Environment.NewLine);
 				StopDownload();
-				MessageBox.Show(this, "AVSIM login failed. Please check your username and password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("AVSIM login failed. Please check your username and password.", FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 			AddMessage(" done." + Environment.NewLine);
+
 			DownloadNextPackage();
 		}
 
@@ -375,12 +469,39 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			if (mCurrentPackageIndex >= mSelectedPackages.Count) {
 				mDownloadInProgress = false;
 				SetControlStates();
-				MessageBox.Show(this, "Package download complete!", "Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+				MessageBox.Show("Package download complete!", FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Information);
 				return;
 			}
-			AddMessage(string.Format("Fetching download link for {0} ...", mSelectedPackages[mCurrentPackageIndex].Name));
+
+			AddMessage(string.Format("\nFetching download link for {0} ...", mSelectedPackages[mCurrentPackageIndex].Name) + Environment.NewLine); 
 			string downloadUri = (ddlSim.SelectedItem.ToString() == "FSX") ? mSelectedPackages[mCurrentPackageIndex].AvsimUrlFsx : mSelectedPackages[mCurrentPackageIndex].AvsimUrlFs9;
-			mPackageDownloadClient.DownloadStringAsync(new Uri(downloadUri));
+
+            // Get the filename of the file we are to download for use if the skip by name option is checked.
+            Match fileNameMatch = Regex.Match(downloadUri, "SearchTerm=(.*?)&", RegexOptions.IgnoreCase);
+            string currentFileName = fileNameMatch.Groups[1].Value.ToLower();
+            AddMessage("Current file: " + currentFileName + Environment.NewLine);
+
+            // If the skip by name is checked, check if the current file we are about to download exists or 
+            // not in the download folder.
+            if (skipPreviouslySavedFiles)
+            {
+                string checkFilePath = txtDownloadFolder.Text + "\\" + currentFileName;
+                AddMessage("Checking if file exists at: " + checkFilePath);
+                if (File.Exists(checkFilePath))
+                {
+                    AddMessage("File " + currentFileName + " already exists, skipping to next file.", Color.Orange);
+                    DownloadNextPackage();
+                }
+                else
+                {
+                    mPackageDownloadClient.DownloadStringAsync(new Uri(downloadUri));
+                }
+            }
+            else
+            {
+                mPackageDownloadClient.DownloadStringAsync(new Uri(downloadUri));
+            }
 		}
 
 		void mPackageDownloadClient_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
@@ -388,12 +509,14 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			if (e.Cancelled) {
 				return;
 			}
+
 			if (e.Error != null) {
 				AddErrorMessage(" error." + Environment.NewLine);
 				StopDownload();
-				MessageBox.Show(this, string.Format("Error fetching download link or FTP URL: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(string.Format("Error fetching download link or FTP URL: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
+
 			string redirectUrl = mPackageDownloadClient.ResponseHeaders[HttpResponseHeader.Location];
 			AddMessage(" done." + Environment.NewLine);
 
@@ -411,47 +534,56 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 				DownloadNextPackage();
 				return;
 			}
-			Match match = Regex.Match(link.Attributes["href"].Value, @"DLID=(\d+)", RegexOptions.IgnoreCase);
-			if (!match.Success) {
+
+			Match fileIdMatch = Regex.Match(link.Attributes["href"].Value, @"DLID=(\d+)", RegexOptions.IgnoreCase);
+			if (!fileIdMatch.Success) {
 				AddErrorMessage("Could not find download link in HTML returned from AVSIM." + Environment.NewLine);
 				DownloadNextPackage();
 				return;
 			}
-			string downloadUrl = string.Format(AVSIM_DOWNLOAD_URL_FORMAT, match.Groups[1].Value);
+
+			string downloadUrl = string.Format(AVSIM_DOWNLOAD_URL_FORMAT, fileIdMatch.Groups[1].Value);
 			AddMessage("Downloading file ...");
 			mPackageDownloadClient.DownloadDataAsync(new Uri(downloadUrl));
 		}
 
 		void mPackageDownloadClient_DownloadDataCompleted(object sender, DownloadDataCompletedEventArgs e) {
-			if (e.Cancelled) {
+
+            if (e.Cancelled) {
 				return;
 			}
+
 			if (e.Error != null) {
 				AddErrorMessage(" error." + Environment.NewLine);
 				StopDownload();
-				MessageBox.Show(this, string.Format("Error downloading package: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(string.Format("Error downloading package: {0}{1}{2}{3}", e.Error.Message, Environment.NewLine, Environment.NewLine, e.Error.InnerException != null ? e.Error.InnerException.Message : ""), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
+
 			string filenameHeader = mPackageDownloadClient.ResponseHeaders["Content-Disposition"] ?? string.Empty;
-			Match match = Regex.Match(filenameHeader, "filename=\"(.+?)\"", RegexOptions.IgnoreCase);
-			if (!match.Success) {
+			Match fileNameMatch = Regex.Match(filenameHeader, "filename=\"(.+?)\"", RegexOptions.IgnoreCase);
+			if (!fileNameMatch.Success) {
 				AddErrorMessage(" filename not found in response headers." + Environment.NewLine);
 				DownloadNextPackage();
 				return;
 			}
-			string filename = Path.Combine(txtDownloadFolder.Text, match.Groups[1].Value);
+
+			string filename = Path.Combine(txtDownloadFolder.Text, fileNameMatch.Groups[1].Value);
 			try {
 				File.WriteAllBytes(filename, e.Result);
 			}
 			catch (Exception ex) {
 				AddErrorMessage(" error." + Environment.NewLine);
 				StopDownload();
-				MessageBox.Show(this, string.Format("Error saving downloaded package: {0}{1}{2}{3}", ex.Message, Environment.NewLine, Environment.NewLine, ex.InnerException != null ? ex.InnerException.Message : ""), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(string.Format("Error saving downloaded package: {0}{1}{2}{3}", ex.Message, Environment.NewLine, Environment.NewLine, ex.InnerException != null ? ex.InnerException.Message : ""), FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
-			AddMessage(" done." + Environment.NewLine);
+
+
+            AddMessage(" done." + Environment.NewLine);
 			progOverall.Value = mCurrentPackageIndex + 1;
-			DownloadNextPackage();
+
+            DownloadNextPackage();
 		}
 
 		private void AddMessage(string message)
@@ -482,6 +614,12 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			}
 		}
 
+        private void ClearMessages()
+        {
+            rtfMessages.Clear();
+        }
+
+        // TODO: Password does not automatically load.
 		private void SaveConfig()
 		{
 			Config cfg = new Config() {
@@ -493,5 +631,49 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			};
 			cfg.Save();
 		}
-	}
+
+        private void chkSkipPreviousSaved_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkSkipPreviousSaved.Checked)
+            {
+                MessageBox.Show("Beware that this will skip previous files that have been downloaded (under the same name) which may be corrupt or incomplete.\n\n It is best to untick and download the latest files.", FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                skipPreviouslySavedFiles = true;
+                AddMessage("\n* Skipping previously downloaded World Of AI files by name.*\n", Color.Blue);
+            }
+            else
+            {
+                skipPreviouslySavedFiles = false;
+            }
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(AVSIM_REGISTER_URL);
+        }
+
+        private void pictureBox1_Click_1(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(WORLD_OF_AI_PACKAGE_INSTALLER_URL);
+        }
+
+        private void materialLabel6_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/RossMetacraft");
+        }
+
+        // Click/select or check changed events we no longer which were extras.
+        private void label6_Click(object sender, EventArgs e) { }
+        private void label9_Click(object sender, EventArgs e) { }
+        private void label9_Click_1(object sender, EventArgs e) { }
+        private void treePackages_AfterSelect(object sender, TreeViewEventArgs e) { }
+        private void label2_Click(object sender, EventArgs e) { }
+        private void label8_Click(object sender, EventArgs e) { }
+        private void materialLabel1_Click(object sender, EventArgs e) { } 
+        private void materialLabel2_Click(object sender, EventArgs e) { }
+        private void materialLabel1_Click_1(object sender, EventArgs e) { }
+        private void materialLabel2_Click_1(object sender, EventArgs e) { }
+        private void txtAvsimPassword_Click(object sender, EventArgs e) { }
+        private void materialLabel4_Click(object sender, EventArgs e) { }
+        private void pictureBox1_Click(object sender, EventArgs e) { }
+    }
 }
