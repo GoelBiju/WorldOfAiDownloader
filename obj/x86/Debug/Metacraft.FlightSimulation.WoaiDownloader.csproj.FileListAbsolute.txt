@@ -27,3 +27,14 @@ C:\Users\goelm\Desktop\Program Workspace\WorldOfAiDownloader-2\bin\Debug\Metacra
 C:\Users\goelm\Desktop\Program Workspace\WorldOfAiDownloader-2\bin\Debug\Metacraft.FlightSimulation.WoaiDownloader.pdb
 C:\Users\goelm\Desktop\Program Workspace\WorldOfAiDownloader-2\bin\Debug\HtmlAgilityPack.dll
 C:\Users\goelm\Desktop\Program Workspace\WorldOfAiDownloader-2\bin\Debug\MaterialSkin.dll
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\bin\Debug\Metacraft.FlightSimulation.WoaiDownloader.exe.config
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\bin\Debug\Metacraft.FlightSimulation.WoaiDownloader.exe
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\bin\Debug\Metacraft.FlightSimulation.WoaiDownloader.pdb
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\bin\Debug\HtmlAgilityPack.dll
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\bin\Debug\MaterialSkin.dll
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\obj\x86\Debug\Metacraft.FlightSimulation.WoaiDownloader.csprojResolveAssemblyReference.cache
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\obj\x86\Debug\Metacraft.FlightSimulation.WoaiDownloader.MainForm.resources
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\obj\x86\Debug\Metacraft.FlightSimulation.WoaiDownloader.Properties.Resources.resources
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\obj\x86\Debug\Metacraft.FlightSimulation.WoaiDownloader.csproj.GenerateResource.Cache
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\obj\x86\Debug\Metacraft.FlightSimulation.WoaiDownloader.exe
+C:\Users\goelm\Desktop\Program Workspace\World Of AI Downloader Files\WorldOfAiDownloader-MaterialSkin\obj\x86\Debug\Metacraft.FlightSimulation.WoaiDownloader.pdb

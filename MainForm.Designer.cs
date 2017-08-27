@@ -33,8 +33,6 @@
             this.ddlSim = new System.Windows.Forms.ComboBox();
             this.txtDownloadFolder = new System.Windows.Forms.TextBox();
             this.progOverall = new System.Windows.Forms.ProgressBar();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
             this.progCurrentFile = new System.Windows.Forms.ProgressBar();
             this.rtfMessages = new Metacraft.FlightSimulation.WoaiDownloader.EnhancedRichTextBox();
             this.availablePackagesLabel = new MaterialSkin.Controls.MaterialLabel();
@@ -59,11 +57,15 @@
             this.materialLabel6 = new MaterialSkin.Controls.MaterialLabel();
             this.fourthStep = new System.Windows.Forms.PictureBox();
             this.btnDownloadPackages = new MaterialSkin.Controls.MaterialFlatButton();
+            this.materialLabel7 = new MaterialSkin.Controls.MaterialLabel();
+            this.materialLabel8 = new MaterialSkin.Controls.MaterialLabel();
+            this.GitHubImage = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.firstStep)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.secondStep)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.thirdStep)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fourthStep)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.GitHubImage)).BeginInit();
             this.SuspendLayout();
             // 
             // treePackages
@@ -84,7 +86,7 @@
             // 
             this.registerAvsim.AutoSize = true;
             this.registerAvsim.BackColor = System.Drawing.Color.White;
-            this.registerAvsim.Location = new System.Drawing.Point(284, 113);
+            this.registerAvsim.Location = new System.Drawing.Point(290, 112);
             this.registerAvsim.Name = "registerAvsim";
             this.registerAvsim.Size = new System.Drawing.Size(173, 13);
             this.registerAvsim.TabIndex = 10;
@@ -118,45 +120,23 @@
             // 
             this.progOverall.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progOverall.Location = new System.Drawing.Point(351, 544);
+            this.progOverall.Location = new System.Drawing.Point(371, 549);
             this.progOverall.Name = "progOverall";
-            this.progOverall.Size = new System.Drawing.Size(519, 23);
+            this.progOverall.Size = new System.Drawing.Size(499, 23);
             this.progOverall.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progOverall.TabIndex = 9;
-            // 
-            // label6
-            // 
-            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label6.BackColor = System.Drawing.Color.White;
-            this.label6.Location = new System.Drawing.Point(279, 544);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(66, 23);
-            this.label6.TabIndex = 8;
-            this.label6.Text = "Overall:";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.label6.Click += new System.EventHandler(this.label6_Click);
-            // 
-            // label7
-            // 
-            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label7.BackColor = System.Drawing.Color.White;
-            this.label7.Location = new System.Drawing.Point(276, 515);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(65, 23);
-            this.label7.TabIndex = 6;
-            this.label7.Text = "Current File:";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // progCurrentFile
             // 
             this.progCurrentFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progCurrentFile.Location = new System.Drawing.Point(351, 515);
+            this.progCurrentFile.Location = new System.Drawing.Point(371, 519);
             this.progCurrentFile.MarqueeAnimationSpeed = 10;
             this.progCurrentFile.Name = "progCurrentFile";
-            this.progCurrentFile.Size = new System.Drawing.Size(519, 23);
+            this.progCurrentFile.Size = new System.Drawing.Size(499, 23);
             this.progCurrentFile.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progCurrentFile.TabIndex = 7;
+            this.progCurrentFile.Click += new System.EventHandler(this.progCurrentFile_Click);
             // 
             // rtfMessages
             // 
@@ -369,9 +349,9 @@
             // 
             this.secondStep.BackColor = System.Drawing.Color.White;
             this.secondStep.Image = ((System.Drawing.Image)(resources.GetObject("secondStep.Image")));
-            this.secondStep.Location = new System.Drawing.Point(279, 157);
+            this.secondStep.Location = new System.Drawing.Point(282, 157);
             this.secondStep.Name = "secondStep";
-            this.secondStep.Size = new System.Drawing.Size(48, 48);
+            this.secondStep.Size = new System.Drawing.Size(52, 55);
             this.secondStep.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.secondStep.TabIndex = 27;
             this.secondStep.TabStop = false;
@@ -382,7 +362,7 @@
             this.thirdStep.Image = ((System.Drawing.Image)(resources.GetObject("thirdStep.Image")));
             this.thirdStep.Location = new System.Drawing.Point(469, 157);
             this.thirdStep.Name = "thirdStep";
-            this.thirdStep.Size = new System.Drawing.Size(48, 48);
+            this.thirdStep.Size = new System.Drawing.Size(52, 55);
             this.thirdStep.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.thirdStep.TabIndex = 28;
             this.thirdStep.TabStop = false;
@@ -422,13 +402,13 @@
             this.chkSkipPreviousSaved.BackColor = System.Drawing.Color.White;
             this.chkSkipPreviousSaved.Depth = 0;
             this.chkSkipPreviousSaved.Font = new System.Drawing.Font("Roboto", 10F);
-            this.chkSkipPreviousSaved.Location = new System.Drawing.Point(287, 592);
+            this.chkSkipPreviousSaved.Location = new System.Drawing.Point(279, 581);
             this.chkSkipPreviousSaved.Margin = new System.Windows.Forms.Padding(0);
             this.chkSkipPreviousSaved.MouseLocation = new System.Drawing.Point(-1, -1);
             this.chkSkipPreviousSaved.MouseState = MaterialSkin.MouseState.HOVER;
             this.chkSkipPreviousSaved.Name = "chkSkipPreviousSaved";
             this.chkSkipPreviousSaved.Ripple = true;
-            this.chkSkipPreviousSaved.Size = new System.Drawing.Size(293, 19);
+            this.chkSkipPreviousSaved.Size = new System.Drawing.Size(294, 26);
             this.chkSkipPreviousSaved.TabIndex = 30;
             this.chkSkipPreviousSaved.Text = "Skip previously downloaded files by name";
             this.chkSkipPreviousSaved.UseVisualStyleBackColor = false;
@@ -488,12 +468,55 @@
             this.btnDownloadPackages.UseVisualStyleBackColor = true;
             this.btnDownloadPackages.Click += new System.EventHandler(this.btnDownloadPackages_Click_1);
             // 
+            // materialLabel7
+            // 
+            this.materialLabel7.AutoSize = true;
+            this.materialLabel7.BackColor = System.Drawing.Color.White;
+            this.materialLabel7.Depth = 0;
+            this.materialLabel7.Font = new System.Drawing.Font("Roboto", 11F);
+            this.materialLabel7.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialLabel7.Location = new System.Drawing.Point(275, 523);
+            this.materialLabel7.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel7.Name = "materialLabel7";
+            this.materialLabel7.Size = new System.Drawing.Size(90, 19);
+            this.materialLabel7.TabIndex = 35;
+            this.materialLabel7.Text = "Current File:";
+            // 
+            // materialLabel8
+            // 
+            this.materialLabel8.AutoSize = true;
+            this.materialLabel8.BackColor = System.Drawing.Color.White;
+            this.materialLabel8.Depth = 0;
+            this.materialLabel8.Font = new System.Drawing.Font("Roboto", 11F);
+            this.materialLabel8.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialLabel8.Location = new System.Drawing.Point(306, 553);
+            this.materialLabel8.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel8.Name = "materialLabel8";
+            this.materialLabel8.Size = new System.Drawing.Size(59, 19);
+            this.materialLabel8.TabIndex = 36;
+            this.materialLabel8.Text = "Overall:";
+            // 
+            // GitHubImage
+            // 
+            this.GitHubImage.BackColor = System.Drawing.Color.White;
+            this.GitHubImage.Image = ((System.Drawing.Image)(resources.GetObject("GitHubImage.Image")));
+            this.GitHubImage.Location = new System.Drawing.Point(660, 27);
+            this.GitHubImage.Name = "GitHubImage";
+            this.GitHubImage.Size = new System.Drawing.Size(31, 33);
+            this.GitHubImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.GitHubImage.TabIndex = 37;
+            this.GitHubImage.TabStop = false;
+            this.GitHubImage.Click += new System.EventHandler(this.GitHubImage_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnablePreventFocusChange;
             this.ClientSize = new System.Drawing.Size(900, 630);
+            this.Controls.Add(this.GitHubImage);
+            this.Controls.Add(this.materialLabel8);
+            this.Controls.Add(this.materialLabel7);
             this.Controls.Add(this.btnDownloadPackages);
             this.Controls.Add(this.fourthStep);
             this.Controls.Add(this.materialLabel6);
@@ -518,9 +541,7 @@
             this.Controls.Add(this.materialLabel1);
             this.Controls.Add(this.selectedPackagesLabel);
             this.Controls.Add(this.availablePackagesLabel);
-            this.Controls.Add(this.label7);
             this.Controls.Add(this.progCurrentFile);
-            this.Controls.Add(this.label6);
             this.Controls.Add(this.progOverall);
             this.Controls.Add(this.treePackages);
             this.Controls.Add(this.progFetchPackageList);
@@ -541,6 +562,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.thirdStep)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fourthStep)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.GitHubImage)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -550,8 +572,6 @@
 		private System.Windows.Forms.TreeView treePackages;
 		private System.Windows.Forms.TextBox txtDownloadFolder;
 		private System.Windows.Forms.ProgressBar progOverall;
-		private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.ProgressBar progCurrentFile;
 		private EnhancedRichTextBox rtfMessages;
 		private System.Windows.Forms.ComboBox ddlSim;
@@ -578,6 +598,9 @@
         private MaterialSkin.Controls.MaterialLabel materialLabel6;
         private System.Windows.Forms.PictureBox fourthStep;
         private MaterialSkin.Controls.MaterialFlatButton btnDownloadPackages;
+        private MaterialSkin.Controls.MaterialLabel materialLabel7;
+        private MaterialSkin.Controls.MaterialLabel materialLabel8;
+        private System.Windows.Forms.PictureBox GitHubImage;
     }
 }
 

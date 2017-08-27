@@ -119,7 +119,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="112_DownArrowShort_Blue.ico" />
-    <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

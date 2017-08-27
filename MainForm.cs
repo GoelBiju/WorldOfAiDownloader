@@ -213,48 +213,57 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 			}
 		}
 
-		private void ParsePackageList(string html)
-		{
-			AddMessage("Parsing package links ...");
-			HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
-			mPackages = new Dictionary<string, Dictionary<string, List<PackageInfo>>>();
-			doc.LoadHtml(html);
-			foreach (PackageGroup packageGroup in mPackageGroups) {
-				mPackages.Add(packageGroup.Name, new Dictionary<string, List<PackageInfo>>());
-				string query = string.Format("//a[@name='{0}']/following::table[1]", packageGroup.Anchor);
-				HtmlNode table = doc.DocumentNode.SelectSingleNode(query);
-				if (table == null) {
-					continue;
-				}
-				foreach (HtmlNode row in table.SelectNodes("tr")) {
-					HtmlNodeCollection cells = row.SelectNodes("td");
-					if (cells.Count != 6) {
-						continue;
-					}
-					PackageInfo pi = new PackageInfo() {
-						Name = cells[1].InnerText.Trim(),
-						Country = cells[2].InnerText.Trim()
-					};
-					if (string.IsNullOrEmpty(pi.Country)) {
-						pi.Country = "N/A";
-					}
-					HtmlNodeCollection links = cells[5].SelectNodes("a");
-					if (links.Count == 2) {
-						pi.AvsimUrlFs9 = links[0].Attributes["href"].Value;
-						pi.AvsimUrlFsx = pi.AvsimUrlFs9;
-					} else {
-						pi.AvsimUrlFs9 = links[0].Attributes["href"].Value;
-						pi.AvsimUrlFsx = links[2].Attributes["href"].Value;
-					}
-					if (!mPackages[packageGroup.Name].ContainsKey(pi.Country)) {
-						mPackages[packageGroup.Name].Add(pi.Country, new List<PackageInfo>());
-					}
-					mPackages[packageGroup.Name][pi.Country].Add(pi);
-				}
-			}
-
+        private void ParsePackageList(string html)
+        {
+            AddMessage("Parsing package links ...");
+            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+            mPackages = new Dictionary<string, Dictionary<string, List<PackageInfo>>>();
+            doc.LoadHtml(html);
+            foreach (PackageGroup packageGroup in mPackageGroups)
+            {
+                mPackages.Add(packageGroup.Name, new Dictionary<string, List<PackageInfo>>());
+                string query = string.Format("//a[@name='{0}']/following::table[1]", packageGroup.Anchor);
+                HtmlNode table = doc.DocumentNode.SelectSingleNode(query);
+                if (table == null) continue;
+                foreach (HtmlNode row in table.SelectNodes("tr"))
+                {
+                    HtmlNodeCollection cells = row.SelectNodes("td");
+                    if (cells.Count != 6) continue;
+                    PackageInfo pi = new PackageInfo()
+                    {
+                        Name = cells[1].InnerText.Trim(),
+                        Country = cells[2].InnerText.Trim()
+                    };
+                    if (string.IsNullOrEmpty(pi.Country)) pi.Country = "N/A";
+                    HtmlNodeCollection links = cells[5].SelectNodes("a");
+                    List<HtmlAgilityPack.HtmlNode> avsimLinks = new List<HtmlAgilityPack.HtmlNode>();
+                    foreach (HtmlAgilityPack.HtmlNode link in links)
+                    {
+                        if (link.InnerText.ToLower().Trim() == "avsim")
+                        {
+                            avsimLinks.Add(link);
+                        }
+                    }
+                    if (avsimLinks.Count == 1)
+                    {
+                        pi.AvsimUrlFs9 = avsimLinks[0].Attributes["href"].Value;
+                        pi.AvsimUrlFsx = pi.AvsimUrlFs9;
+                    }
+                    else if (avsimLinks.Count == 2)
+                    {
+                        pi.AvsimUrlFs9 = avsimLinks[0].Attributes["href"].Value;
+                        pi.AvsimUrlFsx = avsimLinks[1].Attributes["href"].Value;
+                    }
+                    else
+                    {
+                        MessageBox.Show(this, "Error finding AVSIM links for package: \"" + pi.Name + "\"", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    if (!mPackages[packageGroup.Name].ContainsKey(pi.Country)) mPackages[packageGroup.Name].Add(pi.Country, new List<PackageInfo>());
+                    mPackages[packageGroup.Name][pi.Country].Add(pi);
+                }
+            }
             AddMessage(" done." + Environment.NewLine);
-            // AddMessage(new string('_', 97) + Environment.NewLine, Color.Green);
+            AddMessage(new string('_', 97) + Environment.NewLine, Color.Green);
         }
 
 		private void PopulateTree()
@@ -579,7 +588,6 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
 				return;
 			}
 
-
             AddMessage(" done." + Environment.NewLine);
 			progOverall.Value = mCurrentPackageIndex + 1;
 
@@ -636,7 +644,9 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
         {
             if (chkSkipPreviousSaved.Checked)
             {
-                MessageBox.Show("Beware that this will skip previous files that have been downloaded (under the same name) which may be corrupt or incomplete.\n\n It is best to untick and download the latest files.", FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Beware that this will skip previous files that have been downloaded (under the same name) which may be corrupt or incomplete." +
+                    "\n\n It is best to untick and download the latest files.\n\n" +
+                    "HOWEVER, you can still use this to check if you have all the files from World Of AI.", FORM_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 skipPreviouslySavedFiles = true;
                 AddMessage("\n* Skipping previously downloaded World Of AI files by name.*\n", Color.Blue);
             }
@@ -656,7 +666,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
             System.Diagnostics.Process.Start(WORLD_OF_AI_PACKAGE_INSTALLER_URL);
         }
 
-        private void materialLabel6_Click(object sender, EventArgs e)
+        private void GitHubImage_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start("https://github.com/RossMetacraft");
         }
@@ -675,5 +685,7 @@ namespace Metacraft.FlightSimulation.WoaiDownloader
         private void txtAvsimPassword_Click(object sender, EventArgs e) { }
         private void materialLabel4_Click(object sender, EventArgs e) { }
         private void pictureBox1_Click(object sender, EventArgs e) { }
+        private void progCurrentFile_Click(object sender, EventArgs e) { }
+        private void materialLabel6_Click(object sender, EventArgs e) { }
     }
 }
